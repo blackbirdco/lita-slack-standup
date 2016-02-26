@@ -151,7 +151,6 @@ module Lita
         standup_members.select{ |key,value| value.empty? }.first.first
       end
 
-
       def end_standup
         in_standup.value = 'false'
 

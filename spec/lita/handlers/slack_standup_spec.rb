@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Lita::Handlers::Standup, lita_handler: true do
+describe Lita::Handlers::SlackStandup, lita_handler: true do
 
   let(:channel) { "#jambot-test" }
   let(:robot_name) { "jambot-test" }
@@ -12,25 +12,25 @@ describe Lita::Handlers::Standup, lita_handler: true do
       config.token = ENV['SLACK_LITA_TOKEN']
     end
     Lita.configure do |config|
-      config.handlers.standup.channel = '#jambot-test'
+      config.handlers.slack_standup.channel = '#jambot-test'
     end
   end
 
   let(:registry) do
     reg = Lita::Registry.new
-    reg.register_handler(Lita::Handlers::Standup)
+    reg.register_handler(Lita::Handlers::SlackStandup)
     reg.configure do |config|
       config.robot.name = robot_name
       config.robot.alias = "!"
       config.robot.adapter = :slack
-      config.handlers.standup.channel = channel
+      config.handlers.slack_standup.channel = channel
     end
 
     reg
   end
 
   before do
-    standup = Lita::Handlers::Standup.new(robot)
+    standup = Lita::Handlers::SlackStandup.new(robot)
     standup.send(:standup_members).clear
     standup.send(:ids_to_members).clear
     standup.send(:ignored_members).clear 

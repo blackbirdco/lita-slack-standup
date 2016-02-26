@@ -1,4 +1,4 @@
-require "lita-standup"
+require "lita-slack-standup"
 require "lita/rspec"
 require "webmock/rspec"
 

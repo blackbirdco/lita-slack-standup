@@ -5,82 +5,98 @@ module Lita
 
       config :channel
 
-      route(/^start\s*standup?/, :start_standup, command: true, help: {"start standup" => "Lance le standup." })
-
-      def start_standup(message=nil)
-        in_standup.value = 'true'
+      def initialize(robot)
+        super
         setup_redis_objects
-        send_message(config.channel, 'Hello <!channel> ! Le standup va commencer : )')
-        prewritten_standups_summary
-        next_standup
       end
 
-      route(/^standup\s*(.*)$/, :standup, command: true, help: {"standup texte" => "Permet d'écrire son standup à l'avance ou pendant le tour d'un autre."})
+      route(/^standup\s+start$/, :standup_start, command: true, help: {"standup start" => "Lance le standup." })
 
-      def standup(message)
-        setup_redis_objects
+      def standup_start(message=nil)
+        in_standup.value = 'true'
+        send_message(config.channel, 'Hello <!channel> ! Le standup va commencer : )')
+        prewritten_standups_summary
+        standup_next
+      end
+
+      route(/\Astandup\s+report\s*((.|\s)*)\z/, :standup_report, command: true, help: {"standup report TEXT" => "Permet d'écrire son standup à l'avance ou pendant le tour d'un autre."})
+
+      def standup_report(message)
         save_standup message
         message.reply("Ton standup est enregistré. Merci :)")
       end
 
-      route(/^next\s*standup?/, :next_standup, command: true, help: {"next standup" => "Passe à l'utilisateur suivant et considère le standup précédent comme fait."})
+      route(/^standup\s+next$/, :standup_next, command: true, help: {"standup next" => "Passe à l'utilisateur suivant et considère le standup précédent comme fait."})
 
-      def next_standup(message=nil)
-        if in_standup.value == 'true'
-          if standup_members.none? { |user, standup| standup.empty? }
-            end_standup
-          else
-            next_attendee = select_next_standup
-            send_message(config.channel,"Bonjour <@#{next_attendee}> ! C'est à ton tour de parler.") 
-            fill_standup(next_attendee)
-          end
+      def standup_next(message=nil)
+        return unless standup_check?
+
+        if standup_members.none? { |user, standup| standup.empty? }
+          standup_end
         else
-          send_message(config.channel,"La commande n'est pas disponible en dehors d'un standup.")
+          next_attendee = select_next_standup
+          send_message(config.channel,"Bonjour <@#{next_attendee}> ! C'est à ton tour de parler.") 
+          fill_standup(next_attendee)
         end
       end
 
       def reminder
         standup_members.each do |user, standup|
-          send_message("@#{user}","Bonsoir <@#{user}> ! Tu peux donner ton standup pour demain. !standup 3615mavie") if standup.empty?
+          send_message("@#{user}","Bonsoir <@#{user}> ! Tu peux donner ton standup pour demain. !standup report 3615mavie") if standup.empty?
         end
       end
 
-      route(/^ignore\s*(.*)$/, :ignore, command: true, help: {"ignore nom" => "Retire un utilisateur de la liste des personnes ayant à faire le standup"})
+      route(/^standup\s+ignore\s*(.*)$/, :standup_ignore, command: true, help: {"standup ignore USER" => "Retire un utilisateur de la liste des personnes ayant à faire le standup"})
 
-      def ignore(message)
-        user = message.matches[0][0].gsub('@','')
+      def standup_ignore(message)
+        user = extract_user(message)
+        
         unless ignored_members.include? user
           ignored_members << user
           standup_members.delete(user)
         end
+        
         message.reply("<@#{user}> est désormais ignoré jusqu'à nouvel ordre.")
       end
 
-      route(/^unignore\s*(.*)$/, :unignore, command: true, help: {"unignore nom" => "Remet l'utilisateur dans la liste des personnes participant aux standups."})
+      route(/^standup\s+unignore\s*(.*)$/, :standup_unignore, command: true, help: {"standup unignore USER" => "Remet l'utilisateur dans la liste des personnes participant aux standups."})
 
-      def unignore(message)
-        user = message.matches[0][0].gsub('@','')
+      def standup_unignore(message)
+        user = extract_user(message)
+        
         if ignored_members.include? user
           ignored_members.delete(user)
           standup_members[user] = ''
         end
+        
         message.reply("<@#{user}> est à nouveau inclus dans les standups.")
       end
 
-      route(/^list\s*ignore?/, :list_ignore, command: true, help: {"list ignore" => "Liste les utilisateurs ignorés."})
+      route(/^standup\s+list$/, :standup_list, command: true, help: {"standup list" => "Liste les utilisateurs ignorés."})
 
-      def list_ignore(message)
-        reply = "Utilisateurs ignorés : "
-        ignored_members.each do |user|
-          reply += "#{user}  "
-        end
-        message.reply(reply)
+      def standup_list(message)
+        message.reply(
+          ignored_members.inject("Utilisateurs ignorés : ") do |reply, user|
+            reply += "#{user}  "
+          end
+        )
       end
 
       private 
 
+      def extract_user(message)
+        message.matches[0][0].gsub('@','')
+      end
+
+      def standup_check?
+        if in_standup.value != 'true'
+          send_message(config.channel, "La commande n'est pas disponible en dehors d'un standup.")
+        end
+        in_standup.value == 'true'
+      end
+
       def in_standup
-        @in_standup ||= Redis::Value.new('in_standup', redis, marshal: true)
+        @in_standup ||= Redis::Value.new('in_standup', redis)
       end
 
       def ignored_members
@@ -88,19 +104,18 @@ module Lita
       end
 
       def setup_redis_objects
-          update_ids_to_members if ids_to_members.empty?
-          update_standup_members if standup_members.empty?
+        update_ids_to_members if ids_to_members.empty?
+        update_standup_members if standup_members.empty?
       end
 
       def standup_members
-        @standup_members ||= Redis::HashKey.new('standup_members', redis, marshal: true)
+        @standup_members ||= Redis::HashKey.new('standup_members', redis)
       end
 
       def retrieve_channel
-        slack_client.channels_list['channels'].
-          find do |channel| 
-            "##{ channel['name'] }" == config.channel 
-          end
+        slack_client.channels_list['channels'].find do |channel| 
+          "##{ channel['name'] }" == config.channel 
+        end
       end
 
       def fill_standup_members(members_list)
@@ -129,7 +144,7 @@ module Lita
 
       def prewritten_standups_summary
         standup_members.each do |user, standup|
-            display_standup(user, standup) unless standup.empty?
+          display_standup(user, standup) unless standup.empty?
         end
       end
 
@@ -151,15 +166,14 @@ module Lita
         standup_members.select{ |key,value| value.empty? }.first.first
       end
 
-
-      def end_standup
+      def standup_end
         in_standup.value = 'false'
 
         send_message(config.channel, "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :parrot:")
+        
         update_standup_members
         update_ids_to_members
       end
-
     end
     Lita.register_handler(SlackStandup)
   end

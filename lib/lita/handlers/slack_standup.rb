@@ -41,7 +41,7 @@ module Lita
       def reminder
         setup_redis_objects
         standup_members.each do |user, standup|
-          send_message("@#{user}","Bonsoir <@#{user}> ! Tu peux donner ton standup pour demain. !standup 3615mavie") if standup.empty?
+          send_message("@#{user}","Bonsoir <@#{user}> ! Tu peux donner ton standup pour demain. !standup report 3615mavie") if standup.empty?
         end
       end
 

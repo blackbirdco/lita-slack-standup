@@ -1,10 +1,10 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-slack-standup"
-  spec.version       = "0.3.0"
+  spec.version       = "0.4.0"
   spec.authors       = ["Sybil Deboin"]
   spec.email         = ["sybil.deboin@gmail.com"]
   spec.description   = "Standup feature for slack"
-  spec.summary       = ""
+  spec.summary       = "A lita gem to enable standups on slack"
   spec.homepage      = "https://github.com/blackbirdco/lita-slack-standup"
   spec.license       = "GNU v3.0"
   spec.metadata      = { "lita_plugin_type" => "handler" }
@@ -20,10 +20,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "redis-objects"
 
   spec.add_development_dependency "bundler", "~> 1.3"
-  spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "rake"
-  spec.add_development_dependency "rack-test"
   spec.add_development_dependency "rspec", ">= 3.0.0"
   spec.add_development_dependency "webmock"
-  spec.add_development_dependency "vcr" 
 end

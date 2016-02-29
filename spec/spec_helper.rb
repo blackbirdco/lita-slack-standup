@@ -17,13 +17,6 @@ require "redis-objects"
 # was generated with Lita 4, the compatibility mode should be left disabled.
 Lita.version_3_compatibility_mode = false
 
-#VCR.configure do |config|
-#  config.cassette_library_dir = "spec/fixtures/vcr"
-#  config.configure_rspec_metadata!
-#  config.hook_into :webmock
-#  config.filter_sensitive_data("<SLACK_LITA_TOKEN>") { ENV['SLACK_LITA_TOKEN'] }
-#end
-
 RSpec.configure do |c|
   c.after do
     Redis.new.flushdb

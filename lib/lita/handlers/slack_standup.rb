@@ -15,7 +15,7 @@ module Lita
         standup_next
       end
 
-      route(/^standup\s*report\s*(.*)$/, :standup_report, command: true, help: {"standup report TEXT" => "Permet d'écrire son standup à l'avance ou pendant le tour d'un autre."})
+      route(/\Astandup\s*report\s*(.*)\z/, :standup_report, command: true, help: {"standup report TEXT" => "Permet d'écrire son standup à l'avance ou pendant le tour d'un autre."})
 
       def standup_report(message)
         setup_redis_objects

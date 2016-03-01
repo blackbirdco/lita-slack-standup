@@ -1,3 +1,4 @@
+ENV['LANG']="fr"
 require "lita-slack-standup"
 require "lita/rspec"
 require "webmock/rspec"

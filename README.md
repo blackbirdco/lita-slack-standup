@@ -1,7 +1,7 @@
-# lita-slack-tandup
+# lita-slack-standup
 
 lita-slack-standup is a gem for Lita (https://www.lita.io/), a chat bot written in ruby.  
-It handles standup meetings on slack (the sentences are in french for now).
+It handles standup meetings on slack (in english or french). 
 
 ## Installation
 

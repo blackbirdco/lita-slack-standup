@@ -10,23 +10,23 @@ module Lita
         setup_redis_objects
       end
 
-      route(/^standup\s+start$/, :standup_start, command: true, help: {"standup start" => "Lance le standup." })
+      route(/^standup\s+start$/, :standup_start, command: true, help: {t("help.start_cmd") => t("help.start_description") })
 
       def standup_start(message=nil)
         in_standup.value = 'true'
-        send_message(config.channel, 'Hello <!channel> ! Le standup va commencer : )')
+        send_message(config.channel, t("sentence.start"))
         prewritten_standups_summary
         standup_next
       end
 
-      route(/\Astandup\s+report\s*((.|\s)*)\z/, :standup_report, command: true, help: {"standup report TEXT" => "Permet d'écrire son standup à l'avance ou pendant le tour d'un autre."})
+      route(/\Astandup\s+report\s*((.|\s)*)\z/, :standup_report, command: true, help: {t("help.report_cmd") => t("help.report_description")})
 
       def standup_report(message)
         save_standup message
-        message.reply("Ton standup est enregistré. Merci :)")
+        message.reply(t("sentence.report"))
       end
 
-      route(/^standup\s+next$/, :standup_next, command: true, help: {"standup next" => "Passe à l'utilisateur suivant et considère le standup précédent comme fait."})
+      route(/^standup\s+next$/, :standup_next, command: true, help: {t("help.next_cmd") => t("help.next_description")})
 
       def standup_next(message=nil)
         return unless standup_check?
@@ -35,18 +35,18 @@ module Lita
           standup_end
         else
           next_attendee = select_next_standup
-          send_message(config.channel,"Bonjour <@#{next_attendee}> ! C'est à ton tour de parler.") 
+          send_message(config.channel, t("sentence.next", user: next_attendee)) 
           fill_standup(next_attendee)
         end
       end
 
       def reminder
         standup_members.each do |user, standup|
-          send_message("@#{user}","Bonsoir <@#{user}> ! Tu peux donner ton standup pour demain. !standup report 3615mavie") if standup.empty?
+          send_message("@#{user}", t("sentence.reminder", user: user)) if standup.empty?
         end
       end
 
-      route(/^standup\s+ignore\s*(.*)$/, :standup_ignore, command: true, help: {"standup ignore USER" => "Retire un utilisateur de la liste des personnes ayant à faire le standup"})
+      route(/^standup\s+ignore\s*(.*)$/, :standup_ignore, command: true, help: {t("help.ignore_cmd") => t("help.ignore_description")})
 
       def standup_ignore(message)
         user = extract_user(message)
@@ -56,10 +56,10 @@ module Lita
           standup_members.delete(user)
         end
         
-        message.reply("<@#{user}> est désormais ignoré jusqu'à nouvel ordre.")
+        message.reply(t("sentence.ignore", user: user))
       end
 
-      route(/^standup\s+unignore\s*(.*)$/, :standup_unignore, command: true, help: {"standup unignore USER" => "Remet l'utilisateur dans la liste des personnes participant aux standups."})
+      route(/^standup\s+unignore\s*(.*)$/, :standup_unignore, command: true, help: {t("help.unignore_cmd") => t("help.unignore_description")})
 
       def standup_unignore(message)
         user = extract_user(message)
@@ -69,14 +69,13 @@ module Lita
           standup_members[user] = ''
         end
         
-        message.reply("<@#{user}> est à nouveau inclus dans les standups.")
+        message.reply(t("sentence.unignore",user: user))
       end
 
-      route(/^standup\s+list$/, :standup_list, command: true, help: {"standup list" => "Liste les utilisateurs ignorés."})
+      route(/^standup\s+list$/, :standup_list, command: true, help: {t("help.list_cmd") => t("help.list_description")})
 
       def standup_list(message)
-        message.reply(
-          ignored_members.inject("Utilisateurs ignorés : ") do |reply, user|
+        message.reply(ignored_members.inject(t("sentence.list")) do |reply, user|
             reply += "#{user}  "
           end
         )
@@ -90,7 +89,7 @@ module Lita
 
       def standup_check?
         if in_standup.value != 'true'
-          send_message(config.channel, "La commande n'est pas disponible en dehors d'un standup.")
+          send_message(config.channel, t("sentence.next_forbidden"))
         end
         in_standup.value == 'true'
       end
@@ -149,7 +148,7 @@ module Lita
       end
 
       def display_standup(user, standup)
-        send_message(config.channel, "#{user} a déjà renseigné son standup : \n #{standup}")         
+        send_message(config.channel, t("sentence.standup_done",{user: user, standup: standup}))         
       end
 
       def save_standup(message)
@@ -159,7 +158,7 @@ module Lita
       end
 
       def fill_standup(member)
-        standup_members[member] = 'Standup fait en live.'
+        standup_members[member] = t("sentence.standup_fill")
       end
 
       def select_next_standup
@@ -169,7 +168,7 @@ module Lita
       def standup_end
         in_standup.value = 'false'
 
-        send_message(config.channel, "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :parrot:")
+        send_message(config.channel,t("sentence.end_standup"))
         
         update_standup_members
         update_ids_to_members

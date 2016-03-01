@@ -1,0 +1,29 @@
+fr:
+  lita:
+    handlers:
+      slack_standup:
+        help:
+          start_cmd: standup start
+          start_description: Lance le standup
+          report_cmd: standup report TEXTE
+          report_description: Permet d'écrire son standup à l'avance ou pendant le tour d'un autre
+          next_cmd: standup next
+          next_description: Passe à l'utilisateur suivant et considère le standup précédent comme fait
+          ignore_cmd: standup ignore USER
+          ignore_description: Retire un utilisateur de la liste des personnes ayant à faire le standup
+          unignore_cmd: standup unignore USER
+          unignore_description: Remet l'utilisateur dans la liste des personnes participant aux standups
+          list_cmd: standup list
+          list_description: Liste les utilisateurs ignorés
+        sentence:
+          start: "Hello <!channel> ! Le standup va commencer :)"
+          report: "Ton standup est enregistré. Merci :)"
+          next: "Bonjour <@%{user}> ! C'est à ton tour de parler."
+          ignore: "<@%{user}> est désormais ignoré jusqu'à nouvel ordre."
+          reminder: "Bonsoir <@%{user}> ! Tu peux donner ton standup pour demain. !standup report 3615mavie"
+          unignore: "<@%{user}> est à nouveau inclus dans les standups."
+          list: "Utilisateurs ignorés : "
+          next_forbidden: "La commande n'est pas disponible en dehors d'un standup."
+          standup_done: "%{user} a déjà renseigné son standup : \n %{standup}"
+          standup_fill: "Standup fait en live."
+          end_standup: "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)"

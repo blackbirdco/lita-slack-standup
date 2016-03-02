@@ -17,11 +17,11 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
   
     stub_request(:post, "https://slack.com/api/users.list").
       with(:headers => header).
-      to_return(:status => 200, :body => '{"ok": true,"members":[{"id":"A","name":"sybil"}, {"id":"B","name":"zaratan"}]}', :headers => {})
+      to_return(:status => 200, :body => '{"ok": true,"members":[{"id":"A","name":"sybil"}, {"id":"B","name":"zaratan"},{"id":"C","name":"deleted", "deleted":true,"is_bot":false},{"id":"D","name":"bot","deleted":false,"is_bot":true},{"id":"E","name":"deleted_bot","deleted":true,"is_bot":true},{"id":"F","name":"dummy","deleted":false,"is_bot":false}]}', :headers => {})
 
     stub_request(:post, "https://slack.com/api/channels.list").
       with(:headers => header).
-      to_return(:status => 200, :body => '{"ok":true,"channels":[{"id":"C","name":"jambot-test","members":["B","A"],"num_members":2}]}', :headers => {})
+      to_return(:status => 200, :body => '{"ok":true,"channels":[{"id":"CHAN","name":"jambot-test","members":["B","A","C","D","E"],"num_members":5}]}', :headers => {})
     
     stub_request(:post, "https://slack.com/api/chat.postMessage").
       with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Hello <!channel> ! Le standup va commencer :)", "token"=>nil},:headers => header).

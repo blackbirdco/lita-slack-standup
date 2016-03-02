@@ -120,7 +120,9 @@ module Lita
       def fill_standup_members(members_list)
         members_list.each do |user_id|
           name = ids_to_members[user_id]
-          standup_members[name] = '' unless ignored_members.include?(name)
+          unless ignored_members.include?(name) or name == 'automatic_user_ignore'
+             standup_members[name] = ''
+          end
         end
       end
 
@@ -137,7 +139,11 @@ module Lita
       def update_ids_to_members
         ids_to_members.clear
         slack_client.users_list['members'].each do |user|
-          @ids_to_members[user['id']] = user['name']
+          if user['deleted'] or user['is_bot']
+            @ids_to_members[user['id']] = 'automatic_user_ignore'
+          else
+            @ids_to_members[user['id']] = user['name']
+          end
         end
       end
 

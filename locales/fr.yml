@@ -15,6 +15,8 @@ fr:
           unignore_description: Remet l'utilisateur dans la liste des personnes participant aux standups
           list_cmd: standup list
           list_description: Liste les utilisateurs ignorés
+          end_cmd: standup end
+          end_description: Termine le standup, efface les standups enregistrés et met `a jour la liste des utilisateurs.
         sentence:
           start: "Hello <!channel> ! Le standup va commencer :)"
           report: "Ton standup est enregistré. Merci :)"
@@ -26,4 +28,6 @@ fr:
           next_forbidden: "La commande n'est pas disponible en dehors d'un standup."
           standup_done: "%{user} a déjà renseigné son standup : \n %{standup}"
           standup_fill: "Standup fait en live."
+          already_started: "Le standup est déjà en cours."
           end_standup: "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)"
+          clear_objects: "Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour."

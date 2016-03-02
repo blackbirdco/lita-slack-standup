@@ -21,7 +21,7 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
 
     stub_request(:post, "https://slack.com/api/channels.list").
       with(:headers => header).
-      to_return(:status => 200, :body => '{"ok":true,"channels":[{"id":"CHAN","name":"jambot-test","members":["B","A","C","D","E"],"num_members":5}]}', :headers => {})
+      to_return(:status => 200, :body => '{"ok":true,"channels":[{"id":"C","name":"jambot-test","members":["B","A","C","D","E"],"num_members":5}]}', :headers => {})
     
     stub_request(:post, "https://slack.com/api/chat.postMessage").
       with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Hello <!channel> ! Le standup va commencer :)", "token"=>nil},:headers => header).
@@ -38,11 +38,20 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
     stub_request(:post, "https://slack.com/api/chat.postMessage").
       with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)", "token"=>nil},:headers => header).
       to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Et voilà ! C\'est bon pour aujourd\'hui. Merci tout le monde :)"}', :headers => {})
+
+    stub_request(:post, "https://slack.com/api/chat.postMessage").
+      with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour.", "token"=>nil},:headers => header).
+      to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour."}', :headers => {})
  
     stub_request(:post, "https://slack.com/api/chat.postMessage").
       with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"La commande n'est pas disponible en dehors d'un standup.", "token"=>nil},:headers => header).
       to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "La commande n\'est pas disponible en dehors d\'un standup."}', :headers => {})
+
+    stub_request(:post, "https://slack.com/api/chat.postMessage").
+      with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Le standup est déjà en cours.", "token"=>nil},:headers => header).
+      to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Le standup est déjà en cours."}', :headers => {})
  
+
     reg.register_handler(Lita::Handlers::SlackStandup)
     
     reg.configure do |config|
@@ -80,6 +89,16 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
       subject 
     end
 
+    context "during standup" do
+      before do 
+        send_message("!standup start", as: sybil, from: channel)
+      end
+
+      it "doesn't restart the standup" do
+        expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Le standup est déjà en cours.", :as_user=>true})
+        subject
+      end
+    end
     context "with pre-filled report" do
       before do 
         send_message("!standup report My standup report for testing purposes", as: sybil, from: channel)
@@ -190,6 +209,33 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
       expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Bonjour <@sybil> ! C'est à ton tour de parler.", :as_user=>true})
       subject 
       expect(replies.last).to eq("<@sybil> est à nouveau inclus dans les standups.")
+    end
+  end
+
+  describe "!standup end" do
+    subject do 
+      send_message("!standup end", as: sybil, from: channel)
+    end
+
+    it { is_expected.to route("!standup end") }
+
+    context "during standup" do
+      before do
+        send_message("!standup start", as: sybil, from: channel)
+      end
+
+      it "ends the standup" do
+        expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)", :as_user=>true})
+        subject 
+      end
+    end
+
+    context "outside the standup" do
+      it "clears the objects" do
+ 
+        expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour.", :as_user=>true})
+        subject
+      end
     end
   end
 end

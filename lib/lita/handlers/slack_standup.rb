@@ -13,6 +13,8 @@ module Lita
       route(/^standup\s+start$/, :standup_start, command: true, help: {t("help.start_cmd") => t("help.start_description") })
 
       def standup_start(message=nil)
+        return if already_started? 
+       
         in_standup.value = 'true'
         send_message(config.channel, t("sentence.start"))
         prewritten_standups_summary
@@ -81,10 +83,35 @@ module Lita
         )
       end
 
+      route(/^standup\s+end$/, :standup_end, command: true, help: {t("help.end_cmd") => t("help.end_description")})
+
+      def standup_end(message=nil)
+        contextual_end_message
+
+        in_standup.value = 'false'
+        update_standup_members
+        update_ids_to_members
+      end
+
       private 
 
       def extract_user(message)
         message.matches[0][0].gsub('@','')
+      end
+
+      def already_started?
+        if in_standup.value == 'true'
+          send_message(config.channel, t("sentence.already_started"))
+        end
+        in_standup.value == 'true'
+      end
+
+      def contextual_end_message
+        if in_standup.value == 'true'
+          send_message(config.channel,t("sentence.end_standup"))
+        else
+          send_message(config.channel, t("sentence.clear_objects"))
+        end
       end
 
       def standup_check?
@@ -169,15 +196,6 @@ module Lita
 
       def select_next_standup
         standup_members.select{ |key,value| value.empty? }.first.first
-      end
-
-      def standup_end
-        in_standup.value = 'false'
-
-        send_message(config.channel,t("sentence.end_standup"))
-        
-        update_standup_members
-        update_ids_to_members
       end
     end
     Lita.register_handler(SlackStandup)

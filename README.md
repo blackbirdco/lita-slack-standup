@@ -23,10 +23,10 @@ end
 ## Usage
 
  - !standup start : launches the standup, prints the standups already filled and asks for someone else to report
- - !standup next : skips the current user and asks the next user to do his standup report
- - !standup report <some standup report> : saves your standup. If you do it before the start of the standup, you won't be asked to report. The bot will displays your standup in your stead
+ - !standup next : consider current user's standup done and asks the next user to report
+ - !standup report <some standup report> : saves your standup. If you do it before the start of the standup, you won't be asked to report. The bot will display your standup in your stead
  - !standup ignore <some user> : ignores an user for the standups
  - !standup unignore <some user> : unignores an user
- - !standup list : list all ignored users
+ - !standup list : lists all ignored users
   
 The standup stops when everyone has done his report or has been skipped.

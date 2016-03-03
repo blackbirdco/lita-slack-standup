@@ -86,8 +86,9 @@ module Lita
       route(/^standup\s+end$/, :standup_end, command: true, help: {t("help.end_cmd") => t("help.end_description")})
 
       def standup_end(message=nil)
-        contextual_end_message
+        return unless end_check?
 
+        send_message(config.channel,t("sentence.end_standup"))
         in_standup.value = 'false'
         update_ids_to_members
         update_standup_members
@@ -106,12 +107,11 @@ module Lita
         in_standup.value == 'true'
       end
 
-      def contextual_end_message
-        if in_standup.value == 'true'
-          send_message(config.channel,t("sentence.end_standup"))
-        else
-          send_message(config.channel, t("sentence.clear_objects"))
+      def end_check?
+        if in_standup.value != 'true'
+          send_message(config.channel, t("sentence.end_forbidden"))
         end
+        in_standup.value == 'true'
       end
 
       def standup_check?

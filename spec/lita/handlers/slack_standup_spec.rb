@@ -40,8 +40,8 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
       to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Et voilà ! C\'est bon pour aujourd\'hui. Merci tout le monde :)"}', :headers => {})
 
     stub_request(:post, "https://slack.com/api/chat.postMessage").
-      with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour.", "token"=>nil},:headers => header).
-      to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour."}', :headers => {})
+      with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"Aucun standup en cours.", "token"=>nil},:headers => header).
+      to_return(:status => 200, :body => '{"ok": true,"channel": "C","message": "Aucun standup en cours."}', :headers => {})
  
     stub_request(:post, "https://slack.com/api/chat.postMessage").
       with(:body => {"as_user"=>"true", "channel"=>"#jambot-test", "text"=>"La commande n'est pas disponible en dehors d'un standup.", "token"=>nil},:headers => header).
@@ -233,7 +233,7 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
     context "outside the standup" do
       it "clears the objects" do
  
-        expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour.", :as_user=>true})
+        expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Aucun standup en cours.", :as_user=>true})
         subject
       end
     end

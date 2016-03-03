@@ -28,5 +28,6 @@ end
  - !standup ignore <some user> : ignores an user for the standups
  - !standup unignore <some user> : unignores an user
  - !standup list : lists all ignored users
+ - !standup end : ends the current standup
   
 The standup stops when everyone has done his report or has been skipped.

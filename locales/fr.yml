@@ -30,4 +30,4 @@ fr:
           standup_fill: "Standup fait en live."
           already_started: "Le standup est déjà en cours."
           end_standup: "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)"
-          clear_objects: "Aucun standup en cours. Les standups enregistrés ont été supprimés et la liste des utilisateurs mise à jour."
+          end_forbidden: "Aucun standup en cours."

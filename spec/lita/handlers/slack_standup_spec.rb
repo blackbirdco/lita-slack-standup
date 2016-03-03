@@ -94,7 +94,7 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
         send_message("!standup start", as: sybil, from: channel)
       end
 
-      it "doesn't restart the standup" do
+      it "can't launch again the standup" do
         expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>"Le standup est déjà en cours.", :as_user=>true})
         subject
       end

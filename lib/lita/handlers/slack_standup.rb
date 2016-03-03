@@ -89,8 +89,8 @@ module Lita
         contextual_end_message
 
         in_standup.value = 'false'
-        update_standup_members
         update_ids_to_members
+        update_standup_members
       end
 
       private 
@@ -129,13 +129,17 @@ module Lita
         @ignored_members ||= Redis::List.new('ignored_members', redis)
       end
 
-      def setup_redis_objects
-        update_ids_to_members if ids_to_members.empty?
-        update_standup_members if standup_members.empty?
+      def ids_to_members
+        @ids_to_members ||= Redis::HashKey.new('ids_to_members', redis)
       end
 
       def standup_members
         @standup_members ||= Redis::HashKey.new('standup_members', redis)
+      end
+
+      def setup_redis_objects
+        update_ids_to_members if ids_to_members.empty?
+        update_standup_members if standup_members.empty?
       end
 
       def retrieve_channel
@@ -159,17 +163,13 @@ module Lita
         fill_standup_members(members_list)
       end
 
-      def ids_to_members
-        @ids_to_members ||= Redis::HashKey.new('ids_to_members', redis, marshal: true)
-      end
-
       def update_ids_to_members
         ids_to_members.clear
         slack_client.users_list['members'].each do |user|
           if user['deleted'] or user['is_bot']
-            @ids_to_members[user['id']] = 'automatic_user_ignore'
+            ids_to_members[user['id']] = 'automatic_user_ignore'
           else
-            @ids_to_members[user['id']] = user['name']
+            ids_to_members[user['id']] = user['name']
           end
         end
       end

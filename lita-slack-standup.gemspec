@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-slack-standup"
-  spec.version       = "0.10.0"
+  spec.version       = "1.0.0"
   spec.authors       = ["Sybil Deboin"]
   spec.email         = ["sybil.deboin@gmail.com"]
   spec.description   = "Standup feature for slack"

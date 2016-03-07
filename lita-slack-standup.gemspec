@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-slack-standup"
-  spec.version       = "1.0.1"
+  spec.version       = "1.1.0"
   spec.authors       = ["Sybil Deboin"]
   spec.email         = ["sybil.deboin@gmail.com"]
   spec.description   = "Standup feature for slack"
@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "slack-ruby-client"
   spec.add_runtime_dependency "redis-objects"
 
+  spec.add_development_dependency "pry"
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec", ">= 3.0.0"

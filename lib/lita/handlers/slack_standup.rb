@@ -43,9 +43,12 @@ module Lita
       end
 
       def reminder
-        standup_members.each do |user, standup|
-          send_message("@#{user}", t("sentence.reminder", user: user)) if standup.empty?
+        if in_standup.value == "true"
+          spam_users_without_report("shame")
+          standup_end
         end
+
+        spam_users_without_report("reminder")
       end
 
       route(/^standup\s+ignore\s*(.*)$/, :standup_ignore, command: true, help: {t("help.ignore_cmd") => t("help.ignore_description")})
@@ -95,6 +98,12 @@ module Lita
       end
 
       private 
+
+      def spam_users_without_report(translate_key)
+        standup_members.each do |user, standup|
+          send_message("@#{user}", t("sentence.#{translate_key}", user: user)) if standup.empty?
+        end
+      end
 
       def extract_user(message)
         message.matches[0][0].gsub('@','')
@@ -176,12 +185,25 @@ module Lita
 
       def prewritten_standups_summary
         standup_members.each do |user, standup|
-          display_standup(user, standup) unless standup.empty?
+          unless standup.empty?
+            report = report_as_attachment(user, standup)
+            slack_client.chat_postMessage(channel: config.channel, text:"", attachments: report, as_user: true)
+          end
         end
       end
 
-      def display_standup(user, standup)
-        send_message(config.channel, t("sentence.standup_done",{user: user, standup: standup}))         
+      def report_as_attachment(user,standup)
+        [{
+          fallback: t("sentence.fallback_standup_done",{user: user, standup: standup}),
+          title: t("sentence.standup_done", user: user),
+          text: standup,
+          color: name_to_color(user) 
+        }]
+      end
+
+      def name_to_color(name)
+        name.each_char.map { |char| ((char.to_i(36)-10) % 16).to_s(16) }.
+          join[0..5].rjust(6,'0')
       end
 
       def save_standup(message)

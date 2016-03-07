@@ -9,7 +9,7 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
     {'Accept'=>'application/json; charset=utf-8', 
     'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 
     'Content-Type'=>'application/x-www-form-urlencoded', 
-    'User-Agent'=>'Slack Ruby Client/0.6.0'} 
+    'User-Agent'=>'Slack Ruby Client/0.7.0'} 
   }
 
   let(:registry) do
@@ -105,11 +105,18 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
       end
 
       it "displays known reports" do
-        [ "Hello <!channel> ! Le standup va commencer :)",
-          "sybil a déjà renseigné son standup : \n My standup report for testing purposes",
-          "Bonjour <@zaratan> ! C'est à ton tour de parler."
-        ].each do |text|
-          expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>text, :as_user=>true})
+        [ {channel: channel, text: "Hello <!channel> ! Le standup va commencer :)", as_user: true},
+          {channel: channel, text: "", as_user: true, attachments:
+            [{
+              fallback: "sybil a déjà renseigné son standup : \n My standup report for testing purposes",
+              title: "Rapport de sybil",
+              text: "My standup report for testing purposes",
+              color: "02818b"
+            }]
+          },
+          {channel: channel, text: "Bonjour <@zaratan> ! C'est à ton tour de parler.", as_user: true}
+        ].each do |message_content|
+          expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with(message_content)
         end
         subject
       end
@@ -121,15 +128,29 @@ describe Lita::Handlers::SlackStandup, lita_handler: true do
         end
 
         it "displays the standups and ends the meeting" do
-          [ "Hello <!channel> ! Le standup va commencer :)",
-            "zaratan a déjà renseigné son standup : \n My standup report for testing purposes",
-            "sybil a déjà renseigné son standup : \n My standup report for testing purposes",
-            "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)"
-          ].each do |text|
-            expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with({:channel=>channel, :text=>text, :as_user=>true})       
+          [ {channel: channel, text: "Hello <!channel> ! Le standup va commencer :)", as_user: true},
+            {channel: channel, text: "", as_user: true, attachments:
+              [{
+                fallback: "zaratan a déjà renseigné son standup : \n My standup report for testing purposes",
+                title: "Rapport de zaratan",
+                text: "My standup report for testing purposes",
+                color: "901030"
+              }]
+            },         
+            {channel: channel, text: "", as_user: true, attachments:
+              [{
+                fallback: "sybil a déjà renseigné son standup : \n My standup report for testing purposes",
+                title: "Rapport de sybil",
+                text: "My standup report for testing purposes",
+                color: "02818b"
+              }]
+            },
+            {channel: channel, text: "Et voilà ! C'est bon pour aujourd'hui. Merci tout le monde :)", as_user: true}
+          ].each do |message_content|
+            expect_any_instance_of(Slack::Web::Client).to receive(:chat_postMessage).with(message_content)
           end
-          subject
-        end
+            subject
+          end
       end
     end
   end
